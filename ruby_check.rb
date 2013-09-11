@@ -1,12 +1,12 @@
-#require 'rtc'
-#require 'rtc_lib'
+require 'rtc'
+require 'rtc_lib'
 
 module Ruber_checker
 
 #QuickCheck for Ruby
 class Ruby_check
 
-# @params obj: Object containing method, md: Method name, type: Class Object of Arg type 
+# @param obj: Object containing method, md: Method name, type: Class Object of Arg type 
 # @return array of test_set with test results
 # Handles case testing
 def self.qc (obj, md) #type* handler
@@ -19,14 +19,14 @@ def self.qc (obj, md) #type* handler
 	end
 end
 
-# @params str: String name of class inheritance
+# @param str: String name of class inheritance
 # @return instance of randomly generated class
 # 
-def init_type(str)
-	kInstance = str.split("::").inject(Object) {|parent,child| parent.const_get(child)}
-	className = kInstance.class.name
-	classInstance = kInstance.new
-	return eval("#{className}_gen")
+def self.init_type(str)
+	className = str.name
+	kInstance = className.split('::').inject(Object) {|parent,child| parent.const_get(child)}
+	#classInstance = kInstance.new
+	return eval("self.#{className}_gen()")
 end
 
 # Constants for random generation
@@ -43,8 +43,20 @@ def self.Float_gen()
 	rand() * Fixnum_gen()
 end
 
-def self.Array_gen()
-
+# @param fixedLen: False or designated length, ordered: If types given in specific order,
+#		 *types: Array types
+# @return 
+#
+def self.Array_gen(fixedLen, ordered, *types)
+	tempArr = []
+	if ordered then types.each {|type| tempArr << init_type(type.class.name)}
+	elsif fixedLen then fixedLen.times { tempArr << init_type(types[rand(types.length)])}
+	else rand(50).times { tempArr << init_type(types[rand(types.length)]) }
+	end
+	print "TEMPARR: ["
+	tempArr.each {|x| print "#{x}, "}
+	print "]\n\n\n"
+	return tempArr
 end
 
 def self.Hash_gen()
@@ -66,11 +78,31 @@ def self.Char_gen()
 	rand(32..126).chr
 end
 
+########################################## Tools ############################################
+
+
+# @param val: Value to clamp, max: Max acceptable value, min: Min acceptable value
+# @return Object of same type as val that fits constraints
+# Checks for user constraint compliance
+def clampNumber(val, max = FIXNUM_MAX, min = FIXNUM_MIN)
+	x = val
+	if x>max then x = max end
+	if x<min then x = min end
+	return x
+end
+
+# 
+# 
+# does nothing atm
+def self.forwardInit(method, *params)
+	
+end
+
 ################################## Dummy Test Cases ##########################################
 
 
 # Dummy test case for quicker testing purposes; Also serves as default for improper calls
-#typesig("dc: (Fixnum) -> Fixnum")
+typesig("dc: (Fixnum) -> Fixnum")
 def self.dc (x)
 	x + 5
 end
@@ -81,8 +113,8 @@ end
 #puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 #puts self.get_method(:dc)
 #100.times { qc(self,:dc) {|z| z>0}}
-10.times {puts String_gen()}
-
+#10.times {puts String_gen()}
+#10.times {Array_gen(false, false, 1.class, "no".class)}
 
 end
 
