@@ -1,10 +1,11 @@
-#require 'rtc'
-#require 'rtc_lib'
+require 'rtc'
+require 'rtc_lib'
 
-module Ruber_checker
+#module Ruber_checker
 
 #QuickCheck for Ruby
-class Ruby_check  
+class Ruby_check
+  rtc_annotated
 
 # Currently Handled Types
 HANDLED_TYPES = ["String","Char","Fixnum","Float","Array","Hash"]
@@ -88,12 +89,10 @@ def self.Hash_gen()
 
 end
 
-#!!!!!!!!!!!!!!!!!!!!!!! FILE POINTER ISSUE
-
 #@param className: String name of class, *params: Sample parameters of class constructor
 def self.Custom_gen(className, *params)
 	kInstance = className.split('::').inject(Object) {|parent,child| parent.const_get(child)}
-	return kInstance.new(params.each {|typ| init_type(typ.class)}) 
+	return kInstance.new() #instantiate params
 end
 
 ########################################## Tools ############################################
@@ -102,7 +101,7 @@ end
 # @param val: Value to clamp, max: Max acceptable value, min: Min acceptable value
 # @return Object of same type as val that fits constraints
 # Checks for user constraint compliance
-def self.clampNumber(val, max = FIXNUM_MAX, min = FIXNUM_MIN)
+def clampNumber(val, max = FIXNUM_MAX, min = FIXNUM_MIN)
 	x = val
 	if x>max then x = max end
 	if x<min then x = min end
@@ -120,7 +119,7 @@ end
 
 
 # Dummy test case for quicker testing purposes 
-#typesig("dc: (Fixnum) -> Fixnum")
+typesig("dc: (Fixnum) -> Fixnum")
 def self.dc (x)
 	x + 5
 end
@@ -131,9 +130,8 @@ end
 #puts self.get_method(:dc)
 #100.times { qc(self,:dc) {|z| z>0}}
 #10.times {puts String_gen()}
-#20.times {Array_gen(false, false, 1.class, "no".class, 'x'.class)}
-
-
-end
+10.times {Array_gen(false, false, 1.class, "no".class, 'x'.class)}
 
 end
+
+#end
