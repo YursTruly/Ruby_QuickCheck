@@ -1,10 +1,13 @@
-require 'rtc'
-require 'rtc_lib'
+#require 'rtc'
+#require 'rtc_lib'
 
 module Ruber_checker
 
 #QuickCheck for Ruby
 class Ruby_check
+
+# Currently Handled Types
+HANDLED_TYPES = ["String","Char","Fixnum","Float","Array","Hash"]
 
 # @param obj: Object containing method, md: Method name, type: Class Object of Arg type 
 # @return array of test_set with test results
@@ -19,14 +22,23 @@ def self.qc (obj, md) #type* handler
 	end
 end
 
-# @param str: String name of class inheritance
+# @param str: Class object
 # @return instance of randomly generated class
 # 
-def self.init_type(str)
-	className = str.name
+def self.init_type(cls)
+	className = cls.name
+	if !isHandled(className) then return Custom_gen() end #params in custom gen
 	kInstance = className.split('::').inject(Object) {|parent,child| parent.const_get(child)}
 	#classInstance = kInstance.new
 	return eval("self.#{className}_gen()")
+end
+
+# @param name: Class name of ohject in question
+# @return Boolean: Whether param is supported type
+# Determines if class name is handled by this program
+def self.isHandled(name)
+	HANDLED_TYPES.each {|n| if n==name then return true end}
+	return false
 end
 
 # Constants for random generation
@@ -43,10 +55,23 @@ def self.Float_gen()
 	rand() * Fixnum_gen()
 end
 
+def self.Char_gen()
+	rand(32..126).chr
+end
+
+def self.String_gen()
+	tempStr = ""
+	rand(50).times {tempStr += Char_gen()}
+	#Fixnum_gen().times {tempStr += Char_gen()}
+	return tempStr
+end
+
+def self.Symbol_gen()
+
+end
+
 # @param fixedLen: False or designated length, ordered: If types given in specific order,
 #		 *types: Array types
-# @return 
-#
 def self.Array_gen(fixedLen, ordered, *types)
 	tempArr = []
 	if ordered then types.each {|type| tempArr << init_type(type.class.name)}
@@ -63,19 +88,10 @@ def self.Hash_gen()
 
 end
 
-def self.String_gen()
-	tempStr = ""
-	rand(50).times {tempStr += Char_gen()}
-	#Fixnum_gen().times {tempStr += Char_gen()}
-	return tempStr
-end
-
-def self.Symbol_gen()
-
-end
-
-def self.Char_gen()
-	rand(32..126).chr
+#@param className: String name of class, *params: Sample parameters of class constructor
+def self.Custom_gen(className, *params)
+	kInstance = className.split('::').inject(Object) {|parent,child| parent.const_get(child)}
+	return kInstance.new() #instantiate params
 end
 
 ########################################## Tools ############################################
@@ -101,8 +117,8 @@ end
 ################################## Dummy Test Cases ##########################################
 
 
-# Dummy test case for quicker testing purposes; Also serves as default for improper calls
-typesig("dc: (Fixnum) -> Fixnum")
+# Dummy test case for quicker testing purposes 
+#typesig("dc: (Fixnum) -> Fixnum")
 def self.dc (x)
 	x + 5
 end
@@ -110,11 +126,10 @@ end
 ################################ Sandbox Area ###############################################
 
 #100.times { qc(3,:+, 1.class) {|x| x>5} }
-#puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 #puts self.get_method(:dc)
 #100.times { qc(self,:dc) {|z| z>0}}
 #10.times {puts String_gen()}
-#10.times {Array_gen(false, false, 1.class, "no".class)}
+10.times {Array_gen(false, false, 1.class, "no".class, 'x'.class)}
 
 end
 
