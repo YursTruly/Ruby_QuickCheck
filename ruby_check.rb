@@ -3,8 +3,24 @@
 
 module Ruber_checker
 
+#Dummy Class for Testing
+class Rndm
+
+def initialize(x, y)
+	@x = x
+	@y = y
+end
+
+def to_s()
+	return "x:#{@x} y:#{@y}"
+end
+
+end
+
+
 #QuickCheck for Ruby
-class Ruby_check  
+class Ruby_check
+	#rtc_annotated
 
 # Currently Handled Types
 HANDLED_TYPES = ["String","Char","Fixnum","Float","Array","Hash"]
@@ -89,10 +105,15 @@ end
 
 #!!!!!!!!!!!!!!!!!!!!!!! FILE POINTER ISSUE
 
-#@param className: String name of class, *params: Sample parameters of class constructor
-def self.Custom_gen(className, *params)
+#@param className: String name of class, *prm: Sample parameters of class constructor
+def self.Custom_gen(className, *prm)
 	kInstance = className.split('::').inject(Object) {|parent,child| parent.const_get(child)}
-	return kInstance.new(params.each {|typ| init_type(typ.class)}) 
+	tempStr2 = "kInstance.new("
+	prm.each {|typ| tempStr2 += "init_type(#{typ.class}),"}
+	tempStr2.chop!
+	tempStr2 +=")"
+	puts "TEMPSTR2: #{tempStr2}"
+	return eval(tempStr2) 
 end
 
 ########################################## Tools ############################################
@@ -119,7 +140,7 @@ end
 
 
 # Dummy test case for quicker testing purposes 
-#typesig("dc: (Fixnum) -> Fixnum")
+#typesig('dc: (Numeric) -> Numeric')
 def self.dc (x)
 	x + 5
 end
@@ -131,7 +152,8 @@ end
 #100.times { qc(self,:dc) {|z| z>0}}
 #10.times {puts String_gen()}
 #20.times {Array_gen(false, false, 1.class, "no".class, 'x'.class)}
-
+nnn = ::Ruber_checker::Rndm.new(0,"hi")
+puts Custom_gen(nnn.class.name, 0, "hi").to_s
 
 end
 
