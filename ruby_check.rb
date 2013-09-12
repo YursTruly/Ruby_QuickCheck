@@ -37,8 +37,7 @@ end
 # @return Boolean: Whether param is supported type
 # Determines if class name is handled by this program
 def self.isHandled(name)
-	HANDLED_TYPES.each {|n| if n==name then return true end}
-	return false
+	return HANDLED_TYPES.index(name)
 end
 
 # Constants for random generation
