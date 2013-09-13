@@ -6,13 +6,14 @@ module Ruber_checker
 #Dummy Class for Testing
 class Rndm
 
-def initialize(x, y)
+def initialize(x, y, z)
 	@x = x
 	@y = y
+	@z = z
 end
 
 def to_s()
-	return "x:#{@x} y:#{@y}"
+	return "x:#{@x} y:#{@y} z:#{@z}"
 end
 
 end
@@ -38,15 +39,16 @@ def self.qc (obj, md) #type* handler
 	end
 end
 
-# @param str: Class object
+# @param className: Class name, obj: Sample instance of object to create
 # @return instance of randomly generated class
 # 
-def self.init_type(cls)
-	className = cls.name
+def self.init_type(className, obj)
 	if !isHandled(className) then return Custom_gen() end #params in custom gen
 	kInstance = className.split('::').inject(Object) {|parent,child| parent.const_get(child)}
 	#classInstance = kInstance.new
-	return eval("self.#{className}_gen()")
+	tempObj = ""
+	if obj.class.name == "Array" then tempObj = obj end
+	return eval("self.#{className}_gen(#{tempObj})")
 end
 
 # @param name: Class name of ohject in question
@@ -86,16 +88,14 @@ def self.Symbol_gen()
 end
 
 # @param fixedLen: False or designated length, ordered: If types given in specific order,
-#		 *types: Array types
-def self.Array_gen(fixedLen, ordered, *types)
+#		 *types: Array sample
+def self.Array_gen(fixedLen, ordered, types)
 	tempArr = []
 	if ordered then types.each {|type| tempArr << init_type(type.class.name)}
-	elsif fixedLen then fixedLen.times { tempArr << init_type(types[rand(types.length)])}
-	else rand(50).times { tempArr << init_type(types[rand(types.length)]) }
+	elsif fixedLen then fixedLen.times { tempArr << init_type(types[rand(types.length)].class.name)}
+	else rand(50).times { tempArr << init_type(types[rand(types.length)].class.name) }
 	end
-	print "TEMPARR: ["
-	tempArr.each {|x| print "#{x}, "}
-	print "]\n\n\n"
+	printArr(tempArr)
 	return tempArr
 end
 
@@ -109,10 +109,14 @@ end
 def self.Custom_gen(className, *prm)
 	kInstance = className.split('::').inject(Object) {|parent,child| parent.const_get(child)}
 	tempStr2 = "kInstance.new("
-	prm.each {|typ| tempStr2 += "init_type(#{typ.class}),"}
+	prm.each {|typ| 
+	arrVar = ""
+	if typ.class.name == "Array" then arrVar = ",#{typ}" end
+	tempStr2 += "init_type(#{typ.class.name}#{arrVar}),"}
 	tempStr2.chop!
 	tempStr2 +=")"
 	puts "TEMPSTR2: #{tempStr2}"
+	puts "kInstance: #{kInstance}"
 	return eval(tempStr2) 
 end
 
@@ -127,6 +131,12 @@ def self.clampNumber(val, max = FIXNUM_MAX, min = FIXNUM_MIN)
 	if x>max then x = max end
 	if x<min then x = min end
 	return x
+end
+
+def self.printArr(tempArr)
+	print "\n\n\nPRINT ARR: ["
+	tempArr.each {|x| if x.class.name == "Array" then printArr(x) else print "#{x}, " end}
+	print "]\n\n\n"
 end
 
 # 
@@ -151,9 +161,10 @@ end
 #puts self.get_method(:dc)
 #100.times { qc(self,:dc) {|z| z>0}}
 #10.times {puts String_gen()}
-#20.times {Array_gen(false, false, 1.class, "no".class, 'x'.class)}
-nnn = ::Ruber_checker::Rndm.new(0,"hi")
-puts Custom_gen(nnn.class.name, 0, "hi").to_s
+#20.times {Array_gen(false, false, 1, "no", 'x')}
+arr = [1,2,3,4,5]
+nnn = ::Ruber_checker::Rndm.new(0,"hi",arr)
+puts Custom_gen(nnn.class.name, 0, "hi", arr).to_s
 
 end
 
