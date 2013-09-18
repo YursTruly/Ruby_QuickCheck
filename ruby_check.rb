@@ -1,27 +1,26 @@
-#require 'rtc'
-#require 'rtc_lib'
+require 'rtc_lib'
 
 module Ruber_checker
 
 #Dummy Class for Testing
 class Rndm
 
-def initialize(x, y, z)
-	@x = x
-	@y = y
-	@z = z
+	def initialize(x, y, z)
+		@x = x
+		@y = y
+		@z = z
+		puts "\n\nINITIALIZED!\n\n"
+	end
+
+	def to_s()
+		return "YAY!\n\nx:#{@x} y:#{@y} z:#{@z}"
+	end
+
 end
 
-def to_s()
-	return "x:#{@x} y:#{@y} z:#{@z}"
-end
 
-end
-
-
-#QuickCheck for Ruby
 class Ruby_check
-	#rtc_annotated
+	rtc_annotated
 
 # Currently Handled Types
 HANDLED_TYPES = ["String","Char","Fixnum","Float","Array","Hash"]
@@ -42,20 +41,10 @@ end
 # @param className: Class name, obj: Sample instance of object to create
 # @return instance of randomly generated class
 # 
-def self.init_type(className, obj)
-	if !isHandled(className) then return Custom_gen() end #params in custom gen
-	kInstance = className.split('::').inject(Object) {|parent,child| parent.const_get(child)}
-	#classInstance = kInstance.new
-	tempObj = ""
-	if obj.class.name == "Array" then tempObj = obj end
-	return eval("self.#{className}_gen(#{tempObj})")
-end
-
-# @param name: Class name of ohject in question
-# @return Boolean: Whether param is supported type
-# Determines if class name is handled by this program
-def self.isHandled(name)
-	return HANDLED_TYPES.index(name)
+def self.init_type(className, obj=nil)
+	if !HANDLED_TYPES.index(className) then return Custom_gen(className, obj) end
+	if obj.class.name == "Array" then return Array_gen(false, false, obj) end
+	return eval("self.#{className}_gen()")
 end
 
 # Constants for random generation
@@ -79,7 +68,6 @@ end
 def self.String_gen()
 	tempStr = ""
 	rand(50).times {tempStr += Char_gen()}
-	#Fixnum_gen().times {tempStr += Char_gen()}
 	return tempStr
 end
 
@@ -95,7 +83,6 @@ def self.Array_gen(fixedLen, ordered, types)
 	elsif fixedLen then fixedLen.times { tempArr << init_type(types[rand(types.length)].class.name)}
 	else rand(50).times { tempArr << init_type(types[rand(types.length)].class.name) }
 	end
-	printArr(tempArr)
 	return tempArr
 end
 
@@ -108,16 +95,10 @@ end
 #@param className: String name of class, *prm: Sample parameters of class constructor
 def self.Custom_gen(className, *prm)
 	kInstance = className.split('::').inject(Object) {|parent,child| parent.const_get(child)}
-	tempStr2 = "kInstance.new("
-	prm.each {|typ| 
-	arrVar = ""
-	if typ.class.name == "Array" then arrVar = ",#{typ}" end
-	tempStr2 += "init_type(#{typ.class.name}#{arrVar}),"}
-	tempStr2.chop!
-	tempStr2 +=")"
-	puts "TEMPSTR2: #{tempStr2}"
-	puts "kInstance: #{kInstance}"
-	return eval(tempStr2) 
+	paramArr = []
+	prm.each{|tempObj| paramArr << init_type(tempObj.class.name, tempObj)}
+	printArr(paramArr, "custom gen param arr")
+	return kInstance.new(*paramArr)
 end
 
 ########################################## Tools ############################################
@@ -133,10 +114,10 @@ def self.clampNumber(val, max = FIXNUM_MAX, min = FIXNUM_MIN)
 	return x
 end
 
-def self.printArr(tempArr)
-	print "\n\n\nPRINT ARR: ["
+def self.printArr(tempArr, note = "")
+	print "\n\nPRINT ARR: #{note} ["
 	tempArr.each {|x| if x.class.name == "Array" then printArr(x) else print "#{x}, " end}
-	print "]\n\n\n"
+	print "]\n\n"
 end
 
 # 
@@ -150,9 +131,11 @@ end
 
 
 # Dummy test case for quicker testing purposes 
-#typesig('dc: (Numeric) -> Numeric')
-def self.dc (x)
-	x + 5
+typesig('dc: (Numeric, String) -> String')
+def self.dc (x, y)
+	z = ""
+	x.times {z += y}
+	return z
 end
 
 ################################ Sandbox Area ###############################################
@@ -162,9 +145,13 @@ end
 #100.times { qc(self,:dc) {|z| z>0}}
 #10.times {puts String_gen()}
 #20.times {Array_gen(false, false, 1, "no", 'x')}
-arr = [1,2,3,4,5]
-nnn = ::Ruber_checker::Rndm.new(0,"hi",arr)
-puts Custom_gen(nnn.class.name, 0, "hi", arr).to_s
+
+#arr = [1,2,3,4,5]
+#nnn = ::Ruber_checker::Rndm.new(0,"hi",arr)
+#puts Custom_gen(nnn.class.name, 0, "hi", arr).to_s
+
+q = Ruby_check.new.rtc_annotate('Ruby_check')
+typ = (q.rtc_typeof :dc).arg_types
 
 end
 
