@@ -71,6 +71,10 @@ def self.String_gen()
 	return tempStr
 end
 
+def self.Numeric_gen()
+
+end
+
 def self.Symbol_gen()
 
 end
@@ -90,6 +94,10 @@ def self.Hash_gen()
 
 end
 
+def self.Method_gen()
+
+end
+
 #!!!!!!!!!!!!!!!!!!!!!!! FILE POINTER ISSUE
 
 #@param className: String name of class, *prm: Sample parameters of class constructor
@@ -99,6 +107,20 @@ def self.Custom_gen(className, *prm)
 	prm.each{|tempObj| paramArr << init_type(tempObj.class.name, tempObj)}
 	printArr(paramArr, "custom gen param arr")
 	return kInstance.new(*paramArr)
+end
+
+# @params obj: Class instance, mthd: Method to test, id: OPT! Avoid annotation override
+# @return Array of parameter types
+#
+def self.pull_rtc(obj, mthd)
+	tempName = obj.new.class.name
+	tempName = tempName[tempName.rindex(':')+1.. -1]
+	annotatedObj = obj.new.rtc_annotate("#{tempName}")
+	nominalTypeArr = (annotatedObj.rtc_typeof(mthd)).arg_types
+	tempArr = []
+	nominalTypeArr.each {|typ| tempArr << typ.klass.new.class.name}
+	#Stack depth reached error if return initialized types!!
+	return tempArr
 end
 
 ########################################## Tools ############################################
@@ -150,8 +172,10 @@ end
 #nnn = ::Ruber_checker::Rndm.new(0,"hi",arr)
 #puts Custom_gen(nnn.class.name, 0, "hi", arr).to_s
 
-q = Ruby_check.new.rtc_annotate('Ruby_check')
-typ = (q.rtc_typeof :dc).arg_types
+x = pull_rtc(self,:dc)
+tempArr = []
+x.each {|z| tempArr << init_type(z)}
+#/Users/alextyu/.rvm/gems/ruby-1.9.3-p448/gems/rtc-0.0.0/lib/rtc/proxy_object.rb:159: stack level too deep (SystemStackError)
 
 end
 
