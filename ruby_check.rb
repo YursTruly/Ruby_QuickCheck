@@ -23,7 +23,7 @@ class Ruby_check
 	rtc_annotated
 
 # Currently Handled Types
-HANDLED_TYPES = ["String","Char","Fixnum","Float","Array","Hash"]
+HANDLED_TYPES = ["String","Char","Fixnum","Float","Array","Hash","Numeric"]
 
 # @param obj: Object containing method, md: Method name, type: Class Object of Arg type 
 # @return array of test_set with test results
@@ -40,11 +40,14 @@ end
 
 # @param className: Class name, obj: Sample instance of object to create
 # @return instance of randomly generated class
-# 
+# Generates instance of class
 def self.init_type(className, obj=nil)
-	if !HANDLED_TYPES.index(className) then return Custom_gen(className, obj) end
+	if !HANDLED_TYPES.index(className) then
+		if obj.nil? then return nil end
+		return Custom_gen(className, obj)
+	end
 	if obj.class.name == "Array" then return Array_gen(false, false, obj) end
-	return eval("self.#{className}_gen()")
+	return eval("#{className}_gen()")
 end
 
 # Constants for random generation
@@ -72,7 +75,10 @@ def self.String_gen()
 end
 
 def self.Numeric_gen()
-
+	case rand(2)
+		when 0 then return Fixnum_gen()
+		when 1 then return Float_gen()
+	end
 end
 
 def self.Symbol_gen()
@@ -109,7 +115,7 @@ def self.Custom_gen(className, *prm)
 	return kInstance.new(*paramArr)
 end
 
-# @params obj: Class instance, mthd: Method to test, id: OPT! Avoid annotation override
+# @params obj: Class, mthd: Method to test, id: OPT! Avoid annotation override
 # @return Array of parameter types
 #
 def self.pull_rtc(obj, mthd)
@@ -118,8 +124,7 @@ def self.pull_rtc(obj, mthd)
 	annotatedObj = obj.new.rtc_annotate("#{tempName}")
 	nominalTypeArr = (annotatedObj.rtc_typeof(mthd)).arg_types
 	tempArr = []
-	nominalTypeArr.each {|typ| tempArr << typ.klass.new.class.name}
-	#Stack depth reached error if return initialized types!!
+	nominalTypeArr.each {|typ| tempArr << init_type(typ.klass.new.class.name)}
 	return tempArr
 end
 
@@ -160,7 +165,11 @@ def self.dc (x, y)
 	return z
 end
 
+end
+
+#############################################################################################
 ################################ Sandbox Area ###############################################
+#############################################################################################
 
 #100.times { qc(3,:+, 1.class) {|x| x>5} }
 #puts self.get_method(:dc)
@@ -172,11 +181,8 @@ end
 #nnn = ::Ruber_checker::Rndm.new(0,"hi",arr)
 #puts Custom_gen(nnn.class.name, 0, "hi", arr).to_s
 
-x = pull_rtc(self,:dc)
-tempArr = []
-x.each {|z| tempArr << init_type(z)}
-#/Users/alextyu/.rvm/gems/ruby-1.9.3-p448/gems/rtc-0.0.0/lib/rtc/proxy_object.rb:159: stack level too deep (SystemStackError)
+Ruby_check.printArr( Ruby_check.pull_rtc(Ruby_check,:dc))
 
-end
+####TODO: Test arraysRTC, Hashes
 
 end
