@@ -28,7 +28,7 @@ HANDLED_TYPES = ["String","Char","Fixnum","Float","Array","Hash","Numeric"]
 # @param obj: Object containing method, md: Method name, type: Class Object of Arg type 
 # @return array of test_set with test results
 # Handles case testing
-def self.qc (obj, md) #type* handler
+def self.qchandler (obj, md) #type* handler
 	#puts type.name
 	puts "Inside QC Loop"
 	x = Fixnum_gen
