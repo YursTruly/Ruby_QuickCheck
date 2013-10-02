@@ -3,18 +3,19 @@ require 'rdl'
 class QC
 	extend RDL
 	
-	keyword :qc do
-			
+	keyword :qc do |x|
+		
+		puts "hi#{x}"
 		#num_cases = 100
 		
-		pre_task{|x| puts x}
-		
+		action{|x| puts x}
 		
 		dsl do
+			
 			keyword :constrain do
 				#Set generation constraints
 				pre_task { |x| puts "pre" }
-				action { |x| puts x }
+				action { |x| puts "#{x}\n\n" }
 				post_task { |x,ret| puts "post" }
 
 #				action do |x|
@@ -23,30 +24,30 @@ class QC
 					
 #				dsl do
 					
-					keyword :from do
+#					keyword :from do
 					
-					end
+#					end
 					
-					keyword :to do
+#					keyword :to do
 					
-					end
+#					end
 						
-					keyword :with do
+#					keyword :with do
 						
-					end
+#					end
 						
 #				end
 			end
 				
-			keyword :check do |y|
+			keyword :check do
 				#Set post conditions to check
-					
+				action{|y| puts y}
 			end
 				
-#			keyword :times do
-#				action{|x| num_cases = x.to_i}
-#				post_task{puts num_cases}
-#			end
+			keyword :times do
+				action{|x| num_cases = x.to_i}
+				post_task{puts num_cases}
+			end
 			
 		end
 	end
@@ -54,7 +55,7 @@ end
 
 
 a = QC.new
-a.qc{constrain "TestQC" }
+a.qc {constrain ["hello","hi"]}
 
 
 

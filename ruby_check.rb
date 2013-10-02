@@ -38,13 +38,14 @@ def self.qchandler (obj, md) #type* handler
 	end
 end
 
-# @param className: Class name, obj: Sample instance of object to create
+# @param obj: Sample instance of object to create
 # @return instance of randomly generated class
 # Generates instance of class
-def self.init_type(className, obj=nil)
+def self.init_type(obj=nil, *params=nil)
+	className = obj.class.name()
 	if !HANDLED_TYPES.index(className) then
-		if obj.nil? then return nil end
-		return Custom_gen(className, obj)
+		if params.nil? then return nil end
+		return Custom_gen(obj, *params)
 	end
 	if obj.class.name == "Array" then return Array_gen(false, false, obj) end
 	return eval("#{className}_gen()")
@@ -52,25 +53,30 @@ end
 
 # Constants for random generation
 srand
-FIXNUM_MAX = (2**(0.size * 8 - 2) -1)
-FIXNUM_MIN = -(2**(0.size * 8 - 2))
+@FIXNUM_MAX = (2**(0.size * 8 - 2) -1)
+@FIXNUM_MIN = -(2**(0.size * 8 - 2))
+@MAXLEN = 50
 
 # Generators for handled types
-def self.Fixnum_gen()
-	rand(FIXNUM_MAX) * (if rand(2)==1 then -1 else 1 end)
+def self.Fixnum_gen(min=FIXNUM_MIN, max=FIXNUM_MAX, *notused)
+	rand(min..max) #* (if rand(2)==1 then -1 else 1 end)
 end
 
 def self.Float_gen()
 	rand() * Fixnum_gen()
 end
 
-def self.Char_gen()
-	rand(32..126).chr
+def self.Char_gen(min=32, max=126, *notused)
+	n = rand(min..max).chr
+	if(!checkConstr(n)) then return Char_gen(min, max, *notused) end
+	return n
 end
 
-def self.String_gen()
+def self.String_gen(*notused)
 	tempStr = ""
-	rand(50).times {tempStr += Char_gen()}
+	rand(Fixnum_gen(0,MAXLEN)).times {tempStr += Char_gen()
+		while !checkConstr(tempStr) {tempStr = tempStr.substring(0,-1)
+									 tempStr +=Char_gen()}}
 	return tempStr
 end
 
@@ -104,8 +110,11 @@ def self.Method_gen()
 
 end
 
-#!!!!!!!!!!!!!!!!!!!!!!! FILE POINTER ISSUE
+def self.checkConstr()
 
+end
+
+#!!!!!!!!!!!!!!!!!!!!!!! FILE POINTER ISSUE
 #@param className: String name of class, *prm: Sample parameters of class constructor
 def self.Custom_gen(className, *prm)
 	kInstance = className.split('::').inject(Object) {|parent,child| parent.const_get(child)}
