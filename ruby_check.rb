@@ -114,6 +114,10 @@ def self.checkConstr()
 
 end
 
+def method_missing
+
+end
+
 #!!!!!!!!!!!!!!!!!!!!!!! FILE POINTER ISSUE
 #@param className: String name of class, *prm: Sample parameters of class constructor
 def self.Custom_gen(className, *prm)

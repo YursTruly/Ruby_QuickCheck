@@ -1,62 +1,79 @@
 require 'rdl'
 
-class QC
+class QC < Object
 	extend RDL
 	
-	keyword :qc do |x|
+	keyword :qc do
 		
-		puts "hi#{x}"
-		#num_cases = 100
+		#puts "hi#{x}"
+		@num_cases = 100
 		
-		action{|x| puts x}
-		
+				
 		dsl do
+		
+			keyword :params do
+			
+				dsl do
+					
+					keyword :'=' do
+						action{|*x| puts "====="}
+					end
+					
+				end
+			
+			end
 			
 			keyword :constrain do
 				#Set generation constraints
-				pre_task { |x| puts "pre" }
-				action { |x| puts "#{x}\n\n" }
-				post_task { |x,ret| puts "post" }
-
-#				action do |x|
-#					puts x
-#				end
 					
-#				dsl do
+				dsl do
 					
-#					keyword :from do
+					keyword :from do
+						action{|*x| puts "from"}
+					end
 					
-#					end
-					
-#					keyword :to do
-					
-#					end
+					keyword :to do
+						action{|*x| puts "to"}
+					end
 						
-#					keyword :with do
+					keyword :with do
+						action{|*x| puts "with"}
+					end
 						
-#					end
-						
-#				end
-			end
+				end
 				
+				pre_task { |*x| puts "pre" }
+				
+				post_task { |*x| puts "post" }
+			
+			end
+							
 			keyword :check do
 				#Set post conditions to check
-				action{|y| puts y}
+				action{|*y| puts y}
 			end
 				
 			keyword :times do
-				action{|x| num_cases = x.to_i}
-				post_task{puts num_cases}
+				action{|*x| @num_cases = x}
+				post_task{|*x| puts @num_cases}
 			end
 			
 		end
+		
+		post_task{|msym,*prm,&blk|
+			#self.send(msym
+		}
+
 	end
 end
 
 
-a = QC.new
-a.qc {constrain ["hello","hi"]}
+#m = QC.instance_method(:qc)
+#p m.parameters
 
+a = QC.new
+#a.qc("hello","hi") {constrain("hello") {from "j"; to "k"}; times 5}
+a.qc("hi") {params {:y=8}}
 
 
 
