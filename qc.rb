@@ -60,8 +60,15 @@ class QC < Object
 			
 		end
 		
+		pre_task{|msym,*prm,&blk|
+			@prms = *prm
+		}
+		
 		post_task{|msym,*prm,&blk|
-			#self.send(msym
+			num_cases.times {
+				tmprm = nil#call qc generators
+				self.send(msym, tmprm)
+			}	
 		}
 
 	end
