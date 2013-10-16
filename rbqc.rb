@@ -9,7 +9,7 @@ class RQC
 		eval("
 		class #{cls}
 		
-			alias :new_call sym
+			alias :new_call #{sym}
 			
 			def #{@method_to_check}(*x,&blk) do
 				if x[0].class.name ~= \"RQC\" then
@@ -107,7 +107,7 @@ class RQC
 	def get_prms(cls)
 	
 	
-	
+		return nil
 	end
 	
 	# When user passes more params than specified,
