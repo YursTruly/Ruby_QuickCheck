@@ -115,7 +115,7 @@ class RQC
 	def spec_infer(*prms)
 		tempArr = []
 		prms.each{ |x|
-			if !HANDLED_TYPES.contains(x) then tempArr << x end
+			if HANDLED_TYPES.contains(x) then tempArr << x end
 			else
 				tempArr << get_prms(x)
 			end

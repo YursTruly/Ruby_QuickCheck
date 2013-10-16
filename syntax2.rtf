@@ -6,7 +6,10 @@
 
 \f0\fs24 \cf0 10/15/13\
 \
-rqc = new RQC(String, :upcase)\
+rqc = new RQC(String, :upcase) \{|x| x.downcase = $upcase_prm1\}\
+rqc.@checks = \{|x| x.downcase = $upcase_prm1\} #rewriting checks\
+rqc.spec_gen([String])\
+rqc.route_sym(String, :downcast) #just prepping another method to check, for no reason\
 \
 upcase(rqc,"hello world")\
 \
