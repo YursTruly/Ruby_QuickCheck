@@ -1,6 +1,7 @@
 class RQC
 
-	@HANDLED_TYPES = []
+	# Currently Handled Types
+	@HANDLED_TYPES = ["String","Char","Fixnum","Float","Numeric","Symbol"]
 	
 	# CLIENT METHOD: Enables RQC checking of method
 	# @params cls: Class containing method, sym: Symbol of method
@@ -24,8 +25,9 @@ class RQC
 		")
 	end
 
-	# @params cls: class containing method, sym: Symbol representing method to check, checks: proc contatining final conditions, constraints
-	#		  tunnel?: If true, returns value of passed params, else returns random valid value
+	# @params cls: class containing method, sym: Symbol representing method to check, 
+	#		  tunnel?: If true, returns value of passed params, else returns random valid value,
+	#		  &checks: block contatining final conditions
 	def initialize(cls, sym, tunnel?=true, &checks)
 		@method_to_check = sym.to_s
 		@tunnel? = tunnel?
@@ -47,6 +49,14 @@ class RQC
 				@domain = dm
 				@charset = cs						
 				@len_domain = ln
+			end
+			
+			def respond_to?(method)
+				super.respond_to?
+			end
+			
+			def method_missing(method, *args, &blk)
+				return eval("@{method.to_s}")
 			end
 		end
 		obj.constrain
@@ -133,7 +143,19 @@ class RQC
 		ret = send(new_call,*param_new, &blk)
 		return self.compareReq(ret, &blk)
 	end
-			
+
+=begin	
+	def self.pull_rtc(obj, mthd)
+	tempName = obj.new.class.name
+	tempName = tempName[tempName.rindex(':')+1.. -1]
+	annotatedObj = obj.new.rtc_annotate("#{tempName}")
+	nominalTypeArr = (annotatedObj.rtc_typeof(mthd)).arg_types
+	tempArr = []
+	nominalTypeArr.each {|typ| tempArr << init_type(typ.klass.new.class.name)}
+	return tempArr
+	end
+=end	
+		
 end
 
 
