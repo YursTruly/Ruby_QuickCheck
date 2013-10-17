@@ -61,10 +61,10 @@ class RQC
 				retArr << self.get_new_params(x)
 			end
 			else if !x.class.name=="Symbol"
-				return xxxxx.send(x.to_s+"_gen",*obj[1:obj.length-1])
+				return xxxxx.send((x.to_s+"_gen").to_sym,*obj[1:obj.length-1])
 			end
 			else
-				retArr << xxxxx.send(x.class.name+"_gen",x)
+				retArr << xxxxx.send((x.class.name+"_gen").to_sym,x)
 			end
 		end
 		return retArr
