@@ -5,6 +5,7 @@ class Ruby_check
 	srand
 	
 	# Generators for handled types
+	# @params obj: Sample object with constraints bound to eigenclass
 	def Fixnum_gen(obj)
 		return rand(obj.instance_variable_get(:@domain))
 	end

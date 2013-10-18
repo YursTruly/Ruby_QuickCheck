@@ -65,7 +65,7 @@ class RQC
 	# Generates random parameters										
 	def get_new_params(obj)
 		retArr = []
-		xxxxx = Ruber_checker::Ruby_check.new
+		xxxxx = Ruby_check.new
 		obj.each do |x|
 			if x.class.name=="Array" then 
 				retArr << self.get_new_params(x)
