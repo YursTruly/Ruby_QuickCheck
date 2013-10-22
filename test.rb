@@ -1,16 +1,8 @@
+require_relative "rbqc"
 
-class RandomClass
+rqc = RQC.new(String, :upcase) { |x| x.downcase = $upcase_prm1 }
+#rqc.checks = { |x| x.downcase = $upcase_prm1 } #rewriting checks
+rqc.spec_gen([String])
+#rqc.route_sym(String, :downcast) #just prepping another method to check, for no reason
 
-$x = 0
-$y = "hi"
-
-def initialize(int, str)
-	x = int
-	y = str
-end
-
-def to_s()
-	return "x:#{x} y:#{y}"
-end
-
-end
+upcase(rqc, "Hello, world!");

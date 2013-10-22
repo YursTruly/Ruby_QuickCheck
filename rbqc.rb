@@ -6,22 +6,18 @@ class RQC
 	# CLIENT METHOD: Enables RQC checking of method
 	# @params cls: Class containing method, sym: Symbol of method
 	def route_sym(cls,sym)
-		#Re-routes call to <method to check> if rqc called	
-		eval("
-		class #{cls}
-		
-			alias :new_call #{sym}
+          #Re-routes call to <method to check> if rqc called	
+          cls.class_eval("
+            alias :new_call #{sym}
 			
-			def #{@method_to_check}(*x,&blk) do
-				if x[0].class.name ~= \"RQC\" then
-					return x[0].rqc_check(*x,&blk)
-				else
-					return self.send(:new_call,*x,&blk)
-				end
-			end
-		
-		end
-		")
+            def #{@method_to_check}(*x,&blk)
+              if x[0].class.name =~ \"RQC\" then
+		return x[0].rqc_check(*x,&blk)
+	      else
+		return self.send(:new_call,*x,&blk)
+	      end
+	    end
+          ")
 	end
 
 	# @params cls: class containing method, sym: Symbol representing method to check, 
@@ -103,7 +99,7 @@ class RQC
 			else
 				retArr << x.new
 				eval("$#{@method_to_check}_prm#{$ct}=#{x}.new")
-				eval("wrapObj($#{@method_to_check}_prm#{$ct})")
+				eval("wrap_obj($#{@method_to_check}_prm#{$ct})")
 				eval("retArr << $#{@method_to_check}_prm#{$ct}")
 				$ct += 1
 			end
