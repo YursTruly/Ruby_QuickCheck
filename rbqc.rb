@@ -15,7 +15,6 @@ class RQC
 			def #{@method_to_check}(*x,&blk) do
 				if x[0].class.name ~= \"RQC\" then
 					return x[0].rqc_check(*x,&blk)
-				end
 				else
 					return self.send(:new_call,*x,&blk)
 				end
@@ -28,10 +27,10 @@ class RQC
 	# @params cls: class containing method, sym: Symbol representing method to check, 
 	#		  tunnel?: If true, returns value of passed params, else returns random valid value,
 	#		  &checks: block contatining final conditions
-	def initialize(cls, sym, tunnel?=true, &checks)
+	def initialize(cls, sym, tunnel=true, &checks)
 		@method_to_check = sym.to_s
-		@tunnel? = tunnel?
-		@checks = &checks
+		@tunnel = tunnel
+		@checks = checks
 				
 		#array of param constructors
 		@gen_specs = nil		
@@ -39,8 +38,8 @@ class RQC
 		route_sym(cls,sym)
 	end
 	
-	@FIXNUM_MAX = (2**(0.size * 8 - 2) -1)
-	@FIXNUM_MIN = -(2**(0.size * 8 - 2))
+	FIXNUM_MAX = (2**(0.size * 8 - 2) -1)
+	FIXNUM_MIN = -(2**(0.size * 8 - 2))
 	
 	# Adds constraint definitions to sample instances of objects
 	def wrap_obj(obj)
@@ -67,12 +66,10 @@ class RQC
 		retArr = []
 		xxxxx = Ruby_check.new
 		obj.each do |x|
-			if x.class.name=="Array" then 
+			if x.class.name=="Array" 
 				retArr << self.get_new_params(x)
-			end
-			else if !x.class.name=="Symbol"
-				return xxxxx.send((x.to_s+"_gen").to_sym,*obj[1:obj.length-1])
-			end
+			elsif !x.class.name=="Symbol"
+				return xxxxx.send((x.to_s+"_gen").to_sym,*obj[1..(obj.length-1)])
 			else
 				retArr << xxxxx.send((x.class.name+"_gen").to_sym,x)
 			end
@@ -83,40 +80,39 @@ class RQC
 	# Check return of test case against defined checks
 	def compareReq(ret, &blk)
 		if @checks.call(ret) then
-			if !@tunnel? then return ret end
-			else return send(new_call,*prms,&blk) end
+                  if !@tunnel then
+                    return ret
+                  else
+                    return send(new_call,*prms,&blk)
+                  end
 		end
 		return nil
 	end
 		
 	$ct = 0
 	
-	# CLIENT METHOD: Specifies input parameters								
+	# CLIENT METHOD: Specifies input parameters
+	
 	def spec_gen(arr)
 		retArr = []
 		arr.each do |x|
 			if x.class.name=="Array" then 
 				retArr << self.spec_gen(x)
-			end
-			else if !x.class.name=="Symbol"
+			elsif !x.class.name=="Symbol"
 				retArr << x.to_sym
-			end
 			else
 				retArr << x.new
 				eval("$#{@method_to_check}_prm#{$ct}=#{x}.new")
 				eval("wrapObj($#{@method_to_check}_prm#{$ct})")
 				eval("retArr << $#{@method_to_check}_prm#{$ct}")
-				$ct++
+				$ct += 1
 			end
 		end
 		@gen_specs = retArr
 		return retArr
 	end
-	
-	# Gathers parameters for use in collecting input parameters
+		# Gathers parameters for use in collecting input parameters
 	def get_prms(cls)
-	
-	
 		return nil
 	end
 	
@@ -125,9 +121,10 @@ class RQC
 	def spec_infer(*prms)
 		tempArr = []
 		prms.each{ |x|
-			if HANDLED_TYPES.contains(x) then tempArr << x end
+			if HANDLED_TYPES.contains(x) then
+                          tempArr << x
 			else
-				tempArr << get_prms(x)
+                          tempArr << get_prms(x)
 			end
 		}
 		spec_gen(tempArr)
@@ -136,13 +133,16 @@ class RQC
 	# Main method that handles quickcheck
 	def rqc_check(*x,&blk)
 		param_new = []
-		if @gen_spec.length<x.length then spec_infer(x)
+		if @gen_spec.length<x.length then
+                  spec_infer(x)
+                end
 		@gen_specs.each{|y| param_new << get_new_params(y)}
 		ct2 = 0
-		param_new.each {|z| eval("$#{@method_to_check}_p#{ct2}=z"); ct2++}
+		param_new.each {|z| eval("$#{@method_to_check}_p#{ct2}=z"); ct2 += 1 }
 		ret = send(new_call,*param_new, &blk)
 		return self.compareReq(ret, &blk)
 	end
+
 
 =begin	
 	def self.pull_rtc(obj, mthd)
@@ -157,9 +157,3 @@ class RQC
 =end	
 		
 end
-
-
-
-
-
-
