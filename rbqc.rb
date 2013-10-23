@@ -138,6 +138,8 @@ class RQC
 		ret = send(new_call,*param_new, &blk)
 		return self.compareReq(ret, &blk)
 	end
+	
+	#def get_param_refs #returns list of global parameters used
 
 
 =begin	
