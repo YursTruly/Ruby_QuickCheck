@@ -1,7 +1,6 @@
-class RQC
+require_relative "ruby_check"
 
-	# Currently Handled Types
-	@HANDLED_TYPES = ["String","Char","Fixnum","Float","Numeric","Symbol"]
+class RQC
 	
 	# CLIENT METHOD: Enables RQC checking of method
 	# @params cls: Class containing method, sym: Symbol of method
@@ -11,26 +10,30 @@ class RQC
             alias :new_call #{sym}
 			
             def #{@method_to_check}(*x,&blk)
-              if x[0].class.name =~ \"RQC\" then
-		return x[0].rqc_check(*x,&blk)
-	      else
-		return self.send(:new_call,*x,&blk)
-	      end
-	    end
-          ")
+				if x[0].class.name == \"RQC\" then
+					return x[0].compareReq(#{@inst ? @inst : self}.send(:new_call,x[0].rqc_check(*x[1..x.size-1],&blk),&blk),&blk)
+				else
+					return self.send(:new_call,*x,&blk)
+				end
+			end
+		  ")
 	end
 
 	# @params cls: class containing method, sym: Symbol representing method to check, 
 	#		  tunnel?: If true, returns value of passed params, else returns random valid value,
 	#		  &checks: block contatining final conditions
-	def initialize(cls, sym, tunnel=true, &checks)
+	def initialize(cls, sym, isObj=false, tunnel=true, &checks)
 		@method_to_check = sym.to_s
 		@tunnel = tunnel
 		@checks = checks
+		@flag = isObj
 				
 		#array of param constructors
-		@gen_specs = nil		
-			
+		@gen_specs = nil
+		
+		# Currently Handled Types
+		@HANDLED_TYPES = ["String","Char","Fixnum","Float","Numeric","Symbol"]
+		
 		route_sym(cls,sym)
 	end
 	
@@ -51,7 +54,7 @@ class RQC
 			end
 			
 			def method_missing(method, *args, &blk)
-				return eval("@{method.to_s}")
+				return eval("@#{method.to_s}")
 			end
 		end
 		obj.constrain
@@ -65,7 +68,7 @@ class RQC
 			if x.class.name=="Array" 
 				retArr << self.get_new_params(x)
 			elsif !x.class.name=="Symbol"
-				return xxxxx.send((x.to_s+"_gen").to_sym,*obj[1..(obj.length-1)])
+				return xxxxx.send((x.to_s+"_gen").to_sym,*obj[1..(obj.size-1)])
 			else
 				retArr << xxxxx.send((x.class.name+"_gen").to_sym,x)
 			end
@@ -97,8 +100,8 @@ class RQC
 			elsif !x.class.name=="Symbol"
 				retArr << x.to_sym
 			else
-				retArr << x.new
-				eval("$#{@method_to_check}_prm#{$ct}=#{x}.new")
+				xyz = x.new
+				eval("$#{@method_to_check}_prm#{$ct}=xyz")
 				eval("wrap_obj($#{@method_to_check}_prm#{$ct})")
 				eval("retArr << $#{@method_to_check}_prm#{$ct}")
 				$ct += 1
@@ -107,8 +110,12 @@ class RQC
 		@gen_specs = retArr
 		return retArr
 	end
-		# Gathers parameters for use in collecting input parameters
+	
+	# Gathers parameters for use in collecting input parameters
 	def get_prms(cls)
+		
+		
+		
 		return nil
 	end
 	
@@ -116,11 +123,12 @@ class RQC
 	# Infers the input types based on RTC annotations
 	def spec_infer(*prms)
 		tempArr = []
+		p @HANDLED_TYPES
 		prms.each{ |x|
-			if HANDLED_TYPES.contains(x) then
-                          tempArr << x
+			if @HANDLED_TYPES.include?(x) then
+				tempArr << x
 			else
-                          tempArr << get_prms(x)
+				tempArr << get_prms(x)
 			end
 		}
 		spec_gen(tempArr)
@@ -129,14 +137,14 @@ class RQC
 	# Main method that handles quickcheck
 	def rqc_check(*x,&blk)
 		param_new = []
-		if @gen_spec.length<x.length then
-                  spec_infer(x)
+		@inst  = @flag ? get_new_params([cls.new])[0] : nil 
+		if @gen_specs.size<x.size then
+                  spec_infer(x[0..x.size-1])
                 end
 		@gen_specs.each{|y| param_new << get_new_params(y)}
 		ct2 = 0
 		param_new.each {|z| eval("$#{@method_to_check}_p#{ct2}=z"); ct2 += 1 }
-		ret = send(new_call,*param_new, &blk)
-		return self.compareReq(ret, &blk)
+		return *param_new
 	end
 	
 	#def get_param_refs #returns list of global parameters used
