@@ -20,7 +20,7 @@ class Ruby_check
 
 	def String_gen(obj)
 		tempStr = ""
-		rand(obj.instance_variable_get(:@len__domain)).times {tempStr += Char_gen(obj)}
+		rand(obj.instance_variable_get(:@len_domain)).times {tempStr += Char_gen(obj)}
 		return tempStr
 	end
 

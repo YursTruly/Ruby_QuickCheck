@@ -5,48 +5,54 @@ class RQC
 	# CLIENT METHOD: Enables RQC checking of method
 	# @params cls: Class containing method, sym: Symbol of method
 	def route_sym(cls,sym)
-          #Re-routes call to <method to check> if rqc called	
-          cls.class_eval("
+		#Re-routes call to <method to check> if rqc called	
+		
+		cls.class_eval %Q"
             alias :new_call #{sym}
+			@random_var_flag = false
+			@target = self
 			
-            def #{@method_to_check}(*x,&blk)
+			def #{@method_to_check}(*x,&blk)
 				if x[0].class.name == \"RQC\" then
-					return x[0].compareReq(#{@inst ? @inst : self}.send(:new_call,x[0].rqc_check(*x[1..x.size-1],&blk),&blk),&blk)
+					prm = x[0].rqc_check(*x[1..x.size-1],&blk)
+					zzz = self
+					yyy = x[0].instance_variable_get(:@inst)
+					@random_var_flag = x[0].instance_variable_get(:@flag)
+					@target = @random_var_flag ? yyy : zzz
+					p \"yyy\"
+					p yyy
+					ret = @target.send(:new_call,*prm,&blk)
+					p \"ret\"
+					p ret
+					return compareReq(ret,&blk)
 				else
 					return self.send(:new_call,*x,&blk)
 				end
 			end
-		  ")
-	end
-
-	# @params cls: class containing method, sym: Symbol representing method to check, 
-	#		  tunnel?: If true, returns value of passed params, else returns random valid value,
-	#		  &checks: block contatining final conditions
-	def initialize(cls, sym, isObj=false, tunnel=true, &checks)
-		@method_to_check = sym.to_s
-		@tunnel = tunnel
-		@checks = checks
-		@flag = isObj
-				
-		#array of param constructors
-		@gen_specs = nil
-		
-		# Currently Handled Types
-		@HANDLED_TYPES = ["String","Char","Fixnum","Float","Numeric","Symbol"]
-		
-		route_sym(cls,sym)
+			
+			def compareReq(*ret, &blk)
+				if #{@checks}.call(*ret) then
+					if !#{@tunnel} then
+						return ret
+					else
+						return @target.send(:new_call,*ret,&blk)
+					end
+				end
+				return nil
+			end
+		"
 	end
 	
-	FIXNUM_MAX = (2**(0.size * 8 - 2) -1)
-	FIXNUM_MIN = -(2**(0.size * 8 - 2))
+	@FIXNUM_MAX = (2**(0.size * 8 - 2) -1)
+	@FIXNUM_MIN = -(2**(0.size * 8 - 2))
 	
 	# Adds constraint definitions to sample instances of objects
 	def wrap_obj(obj)
 		class << obj
-			def constrain (dm = FIXNUM_MIN..FIXNUM_MAX, cs = 32..126, lndm = 0..50)
+			def constrain (dm = @FIXNUM_MIN..@FIXNUM_MAX, cs = 32..126, lndm = 0..50)
 				@domain = dm
 				@charset = cs						
-				@len_domain = ln
+				@len_domain = lndm
 			end
 			
 			def respond_to?(method)
@@ -58,6 +64,7 @@ class RQC
 			end
 		end
 		obj.constrain
+		return obj
 	end
 	
 	# Generates random parameters										
@@ -67,8 +74,10 @@ class RQC
 		obj.each do |x|
 			if x.class.name=="Array" 
 				retArr << self.get_new_params(x)
-			elsif !x.class.name=="Symbol"
+			elsif x.class.name=="Symbol"
 				return xxxxx.send((x.to_s+"_gen").to_sym,*obj[1..(obj.size-1)])
+			elsif x.class.name=="Class" and !@inst=="nil"
+				return xxxxx.send((x.class.name+"_gen").to_sym,x)
 			else
 				retArr << xxxxx.send((x.class.name+"_gen").to_sym,x)
 			end
@@ -76,16 +85,25 @@ class RQC
 		return retArr
 	end
 	
-	# Check return of test case against defined checks
-	def compareReq(ret, &blk)
-		if @checks.call(ret) then
-                  if !@tunnel then
-                    return ret
-                  else
-                    return send(new_call,*prms,&blk)
-                  end
-		end
-		return nil
+	# @params cls: class containing method, sym: Symbol representing method to check, 
+	#		  tunnel?: If true, returns value of passed params, else returns random valid value,
+	#		  &checks: block contatining final conditions
+	def initialize(cls, sym, isObj=false, tunnel=true, &checks)
+		@cls = cls
+		@method_to_check = sym.to_s
+		@tunnel = tunnel
+		@checks = checks
+		@flag = isObj
+				
+		#array of param constructors
+		@gen_specs = []
+		
+		# Currently Handled Types
+		@HANDLED_TYPES = ["String","Char","Fixnum","Float","Numeric","Symbol"]
+		
+		@inst = "nil"
+		
+		route_sym(cls,sym)
 	end
 		
 	$ct = 0
@@ -116,7 +134,7 @@ class RQC
 		
 		
 		
-		return nil
+		return [String]
 	end
 	
 	# When user passes more params than specified,
@@ -137,7 +155,10 @@ class RQC
 	# Main method that handles quickcheck
 	def rqc_check(*x,&blk)
 		param_new = []
-		@inst  = @flag ? get_new_params([cls.new])[0] : nil 
+		@inst  = @flag ? get_new_params([wrap_obj(@cls.new)])[0] : "nil" 
+		p "flag #{@flag}"
+		p "inst #{@inst}"
+		if @flag then eval("$#{@method_to_check}_p0 = @inst") end
 		if @gen_specs.size<x.size then
                   spec_infer(x[0..x.size-1])
                 end
@@ -150,16 +171,15 @@ class RQC
 	#def get_param_refs #returns list of global parameters used
 
 
-=begin	
-	def self.pull_rtc(obj, mthd)
-	tempName = obj.new.class.name
-	tempName = tempName[tempName.rindex(':')+1.. -1]
-	annotatedObj = obj.new.rtc_annotate("#{tempName}")
-	nominalTypeArr = (annotatedObj.rtc_typeof(mthd)).arg_types
-	tempArr = []
-	nominalTypeArr.each {|typ| tempArr << init_type(typ.klass.new.class.name)}
-	return tempArr
-	end
-=end	
+	
+#	def self.pull_rtc(obj, mthd)
+#	tempName = obj.new.class.name
+#	tempName = tempName[tempName.rindex(':')+1.. -1]
+#	annotatedObj = obj.new.rtc_annotate("#{tempName}")
+#	nominalTypeArr = (annotatedObj.rtc_typeof(mthd)).arg_types
+#	tempArr = []
+#	nominalTypeArr.each {|typ| tempArr << init_type(typ.klass.new.class.name)}
+#	return tempArr
+#	end	
 		
 end
