@@ -6,9 +6,11 @@ class RQC
 	# @params cls: Class containing method, sym: Symbol of method
 	def route_sym(cls,sym)
 		#Re-routes call to <method to check> if rqc called	
+		mthd_name = "new_call_#{@method_to_check}".to_sym
 		
 		cls.class_eval %Q"
-            alias :new_call #{sym}
+            alias #{mthd_name} #{sym}
+						
 			@random_var_flag = false
 			@target = self
 			
@@ -19,28 +21,23 @@ class RQC
 					yyy = x[0].instance_variable_get(:@inst)
 					@random_var_flag = x[0].instance_variable_get(:@flag)
 					@target = @random_var_flag ? yyy : zzz
-					p \"yyy\"
-					p yyy
-					ret = @target.send(:new_call,*prm,&blk)
-					p \"ret\"
-					p ret
-					return compareReq(ret,&blk)
+					p \"hi\"
+					p \"#{mthd_name}\"
+					ret = @target.send(#{mthd_name},*prm,&blk)
+					p \"hi\"
+					return x[0].compareReq(ret,@target,&blk)
 				else
-					return self.send(:new_call,*x,&blk)
+					return self.send(#{mthd_name},*x,&blk)
 				end
-			end
-			
-			def compareReq(*ret, &blk)
-				if #{@checks}.call(*ret) then
-					if !#{@tunnel} then
-						return ret
-					else
-						return @target.send(:new_call,*ret,&blk)
-					end
-				end
-				return nil
 			end
 		"
+	end
+	
+	def compareReq(*ret,target,&blk)
+		if @checks.call(*ret) then
+			return ret[0]
+		end
+		return nil
 	end
 	
 	@FIXNUM_MAX = (2**(0.size * 8 - 2) -1)
@@ -85,13 +82,11 @@ class RQC
 		return retArr
 	end
 	
-	# @params cls: class containing method, sym: Symbol representing method to check, 
-	#		  tunnel?: If true, returns value of passed params, else returns random valid value,
+	# @params cls: class containing method, sym: Symbol representing method to check,
 	#		  &checks: block contatining final conditions
-	def initialize(cls, sym, isObj=false, tunnel=true, &checks)
+	def initialize(cls, sym, isObj=false, &checks)
 		@cls = cls
 		@method_to_check = sym.to_s
-		@tunnel = tunnel
 		@checks = checks
 		@flag = isObj
 				
@@ -156,8 +151,7 @@ class RQC
 	def rqc_check(*x,&blk)
 		param_new = []
 		@inst  = @flag ? get_new_params([wrap_obj(@cls.new)])[0] : "nil" 
-		p "flag #{@flag}"
-		p "inst #{@inst}"
+		#p "inst #{@inst}"
 		if @flag then eval("$#{@method_to_check}_p0 = @inst") end
 		if @gen_specs.size<x.size then
                   spec_infer(x[0..x.size-1])
