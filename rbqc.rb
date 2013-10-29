@@ -10,24 +10,21 @@ class RQC
 		
 		cls.class_eval %Q"
             alias #{mthd_name} #{sym}
-						
-			@random_var_flag = false
-			@target = self
 			
 			def #{@method_to_check}(*x,&blk)
+				mname = \"#{mthd_name}\".to_sym
+				@random_var_flag = false
+				@target = self
 				if x[0].class.name == \"RQC\" then
 					prm = x[0].rqc_check(*x[1..x.size-1],&blk)
 					zzz = self
 					yyy = x[0].instance_variable_get(:@inst)
 					@random_var_flag = x[0].instance_variable_get(:@flag)
 					@target = @random_var_flag ? yyy : zzz
-					p \"hi\"
-					p \"#{mthd_name}\"
-					ret = @target.send(#{mthd_name},*prm,&blk)
-					p \"hi\"
+					ret = @target.send(mname,*prm,&blk)
 					return x[0].compareReq(ret,@target,&blk)
 				else
-					return self.send(#{mthd_name},*x,&blk)
+					return self.send(mname,*x,&blk)
 				end
 			end
 		"
