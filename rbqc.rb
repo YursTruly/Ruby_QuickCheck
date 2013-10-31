@@ -72,7 +72,7 @@ class RQC
 	#		  isObj: Does the object from which method is called be generated?, &checks: block contatining final conditions
 	def initialize(cls, sym, isObj=true, &checks)
 		@cls = cls
-		@cls_def = [cls]
+		@cls_def = []
 		@method_to_check = sym.to_s
 		@checks = checks
 		@flag = isObj
@@ -93,7 +93,9 @@ class RQC
 	# CLIENT METHOD: Specifies input parameters
 	
 	def spec_gen(arr=[], cls_def2=[@cls])
-		if !cls_def2==nil then @cls_def = spec_gen(cls_def2, nil) end
+		if !cls_def2.nil? then 
+			@cls_def = spec_gen(cls_def2, nil)
+		end
 		retArr = []
 		arr.each do |x|
 			if x.class.name=="Array" then 
@@ -101,8 +103,8 @@ class RQC
 			elsif x.class.name=="Symbol"
 				retArr << x
 			else
-				eval("$#{@method_to_check}_prm#{$ct}=wrap_obj(x.to_s)")
-				eval("retArr << $#{@method_to_check}_prm#{$ct}")
+				eval("$#{@method_to_check}_c#{$ct}=wrap_obj(x.to_s)")
+				eval("retArr << $#{@method_to_check}_c#{$ct}")
 				$ct += 1
 			end
 		end
@@ -136,13 +138,14 @@ class RQC
 	# Main method that handles quickcheck
 	def rqc_check(*x,&blk)
 		param_new = []
-		#p "inst #{@inst}"
-		if @flag then 
-			@inst = get_new_params([wrap_obj(@cls.name)])[0] #@cls_def
-			eval("$#{@method_to_check}_p0 = @inst") 
+		if @cls_def.size==0 then
+			spec_gen([]) 
 		end
 		if @gen_specs.size<x.size then spec_infer(x[0..x.size-1]) end
-		if @gen_specs.size<=0 then spec_gen() end
+		if @flag then 
+			@inst = get_new_params(@cls_def)[0]
+			eval("$#{@method_to_check}_p0 = @inst") 
+		end
 		param_new = get_new_params(@gen_specs)
 		ct2 = 0
 		param_new.each {|z| eval("$#{@method_to_check}_p#{ct2}=z"); ct2 += 1 }

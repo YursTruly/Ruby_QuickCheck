@@ -1,0 +1,55 @@
+Updated October 31, 2013 @Alex Yu
+
+Class: RQC
+
+Constructor: NEW
+Creates a new instance of RQC, which stores information on final test cases and input parameters for case generation
+	1. Class containing tested method
+	2. Symbol representing method to be tested
+	3. (Opt) Boolean representing if object from which method is called should be retained (true=generate, false=retain)
+	4. Block containing checks that specify pass/failure of test case
+
+Method: SPEC_GEN
+Annotates any non-basic generation. Defaults to no constructor parameters and no passed parameters
+	1. An Array containing Class of object type to be generated or Array with first element a symbol representing a non-basic class, and the remaining elements the constructor parameters (nestable).
+	2. (Opt) An array as above specifying the generation of the class for methods called from non-static environments
+
+Variables: $#{name_of_method_to_check}_c#{some_integer}, $#{name_of_method_to_check}_p#{some_integer}
+Global variables store information user can access / modify. The labeling integer begins with 1 and increases in correspondence with SPEC_GEN:1 syntax (symbols not included). _p0 can be used to access variable used in CONSTRUCTOR:3
+	1. c is for constraint. These variables store constraint info
+	2. p is for parameter. These variables keep track of the generated values used
+
+Constraint Parameters: RQC_CONSTRAIN
+A method stored on global _c variables that manages constraining generation. Has default constraints
+	1. Range specifying domain of numeric values
+	2. Range specifying domain of ascii charset values
+	3. Range specifying domain of length values
+
+Usage: TESTING WITH RQC
+Passing an RQC object as the first parameter to the tested method wi.ll result in a check being called (otherwise the method functions as normal).
+The check will return nil if failed or the valid return value from the test case if passed.
+
+Examples / Explanations:
+
+[NEW]   	>> RQC.new (String, :reverse) {|x| x.reverse == $reverse_p0}
+		>> RQC.new (Random, :rand, false) {|x| *some_check* }
+
+[SPEC_GEN]      >> rqc = RQC.new(Numeric, :coerce) {|x| *some_check* } 
+		>> rqc.spec_gen ([Numeric])
+		>> rqc2 = RQC.new(MyClass::MyOtherClass, :my_method)
+		>> rqc2.spec_gen([Fixnum, [:Array, Fixnum, Fixnum]], [:MyOtherClass, String, Fixnum])
+
+[Variables]     > [Fixnum, [:Array, Fixnum, Fixnum]]
+		> [$my_method_c1, [ , $my_method_c2, $my_method_c3]
+
+[Constraints]   >> $my_method_c1.rqc_constrain(-10..10, 32..60, 5..10)
+		>> 100.times {*check method*; p $my_method_p1}
+
+[Usage] 	>> rqc1 = RQC.new(String, :reverse) {|x| x.reverse == $reverse_p0}
+		>> if "Hello World!".reverse(rqc1) then p "this works".reverse end
+
+
+
+
+
+
