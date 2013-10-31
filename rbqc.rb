@@ -58,7 +58,7 @@ class RQC
 			if x.class.name=="Array" 
 				retArr << self.get_new_params(x)
 			elsif x.class.name=="Symbol"
-				return xxxxx.send((x.to_s+"_gen").to_sym,*obj[1..(obj.size-1)])
+				return xxxxx.send((x.to_s+"_gen").to_sym,*get_new_params(obj[1..(obj.size-1)]))
 			elsif x.class.name=="Class" and !@inst=="nil"
 				return xxxxx.send((x.to_s+"_gen").to_sym,x)
 			else
@@ -69,9 +69,10 @@ class RQC
 	end
 	
 	# @params cls: class containing method, sym: Symbol representing method to check,
-	#		  &checks: block contatining final conditions
-	def initialize(cls, sym, isObj=false, &checks)
+	#		  isObj: Does the object from which method is called be generated?, &checks: block contatining final conditions
+	def initialize(cls, sym, isObj=true, &checks)
 		@cls = cls
+		@cls_def = [cls]
 		@method_to_check = sym.to_s
 		@checks = checks
 		@flag = isObj
@@ -91,7 +92,8 @@ class RQC
 	
 	# CLIENT METHOD: Specifies input parameters
 	
-	def spec_gen(arr)
+	def spec_gen(arr=[], cls_def2=[@cls])
+		if !cls_def2==nil then @cls_def = spec_gen(cls_def2, nil) end
 		retArr = []
 		arr.each do |x|
 			if x.class.name=="Array" then 
@@ -123,9 +125,9 @@ class RQC
 		p @HANDLED_TYPES
 		prms.each{ |x|
 			if @HANDLED_TYPES.include?(x) then
-				tempArr << x
+				tempArr << x.class
 			else
-				tempArr << get_prms(x)
+				tempArr << get_prms(x.class)
 			end
 		}
 		spec_gen(tempArr)
@@ -134,12 +136,13 @@ class RQC
 	# Main method that handles quickcheck
 	def rqc_check(*x,&blk)
 		param_new = []
-		@inst  = @flag ? get_new_params([wrap_obj(@cls.name)])[0] : "nil" 
 		#p "inst #{@inst}"
-		if @flag then eval("$#{@method_to_check}_p0 = @inst") end
-		if @gen_specs.size<x.size then
-                  spec_infer(x[0..x.size-1])
-                end
+		if @flag then 
+			@inst = get_new_params([wrap_obj(@cls.name)])[0] #@cls_def
+			eval("$#{@method_to_check}_p0 = @inst") 
+		end
+		if @gen_specs.size<x.size then spec_infer(x[0..x.size-1]) end
+		if @gen_specs.size<=0 then spec_gen() end
 		param_new = get_new_params(@gen_specs)
 		ct2 = 0
 		param_new.each {|z| eval("$#{@method_to_check}_p#{ct2}=z"); ct2 += 1 }
