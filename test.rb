@@ -3,6 +3,8 @@ require_relative "rbqc"
 #pass
 rqc = RQC.new(String, :upcase, true) { |x| x.downcase == $upcase_p0.downcase }
 p "Hello World!".upcase(rqc)
+#TO DO:
+# Fix NEW (Floats,etc.)
 
 #pass
 rqc1 = RQC.new(String, :reverse, true) {|x| x.reverse == $reverse_p0}

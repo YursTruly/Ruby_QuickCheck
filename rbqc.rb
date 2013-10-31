@@ -37,27 +37,16 @@ class RQC
 		return nil
 	end
 	
-	@FIXNUM_MAX = (2**(0.size * 8 - 2) -1)
-	@FIXNUM_MIN = -(2**(0.size * 8 - 2))
-	
 	# Adds constraint definitions to sample instances of objects
 	def wrap_obj(obj)
 		class << obj
-			def constrain (dm = @FIXNUM_MIN..@FIXNUM_MAX, cs = 32..126, lndm = 0..50)
+			def rqc_constrain (dm = (-(2**(0.size * 8 - 2)))..((2**(0.size * 8 - 2) -1)), cs = 32..126, lndm = 0..50)
 				@domain = dm
 				@charset = cs						
 				@len_domain = lndm
 			end
-			
-			def respond_to?(method)
-				super.respond_to?
-			end
-			
-			def method_missing(method, *args, &blk)
-				return eval("@#{method.to_s}")
-			end
 		end
-		obj.constrain
+		obj.rqc_constrain
 		return obj
 	end
 	
@@ -71,9 +60,9 @@ class RQC
 			elsif x.class.name=="Symbol"
 				return xxxxx.send((x.to_s+"_gen").to_sym,*obj[1..(obj.size-1)])
 			elsif x.class.name=="Class" and !@inst=="nil"
-				return xxxxx.send((x.class.name+"_gen").to_sym,x)
+				return xxxxx.send((x.to_s+"_gen").to_sym,x)
 			else
-				retArr << xxxxx.send((x.class.name+"_gen").to_sym,x)
+				retArr << xxxxx.send((x.to_s+"_gen").to_sym,x)
 			end
 		end
 		return retArr
@@ -107,12 +96,10 @@ class RQC
 		arr.each do |x|
 			if x.class.name=="Array" then 
 				retArr << self.spec_gen(x)
-			elsif !x.class.name=="Symbol"
-				retArr << x.to_sym
+			elsif x.class.name=="Symbol"
+				retArr << x
 			else
-				xyz = x.new
-				eval("$#{@method_to_check}_prm#{$ct}=xyz")
-				eval("wrap_obj($#{@method_to_check}_prm#{$ct})")
+				eval("$#{@method_to_check}_prm#{$ct}=wrap_obj(x.to_s)")
 				eval("retArr << $#{@method_to_check}_prm#{$ct}")
 				$ct += 1
 			end
@@ -147,13 +134,13 @@ class RQC
 	# Main method that handles quickcheck
 	def rqc_check(*x,&blk)
 		param_new = []
-		@inst  = @flag ? get_new_params([wrap_obj(@cls.new)])[0] : "nil" 
+		@inst  = @flag ? get_new_params([wrap_obj(@cls.name)])[0] : "nil" 
 		#p "inst #{@inst}"
 		if @flag then eval("$#{@method_to_check}_p0 = @inst") end
 		if @gen_specs.size<x.size then
                   spec_infer(x[0..x.size-1])
                 end
-		@gen_specs.each{|y| param_new << get_new_params(y)}
+		param_new = get_new_params(@gen_specs)
 		ct2 = 0
 		param_new.each {|z| eval("$#{@method_to_check}_p#{ct2}=z"); ct2 += 1 }
 		return *param_new
