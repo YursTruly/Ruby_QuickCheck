@@ -13,7 +13,10 @@ class RQC
 			
 			def #{@method_to_check}(*x,&blk)
 				mname = \"#{mthd_name}\".to_sym
+				p \"zz\"
+				p @random_var_flag
 				@random_var_flag = false
+				p \"yy\"
 				@target = self
 				if x[0].class.name == \"RQC\" then
 					prm = x[0].rqc_check(*x[1..x.size-1],&blk)

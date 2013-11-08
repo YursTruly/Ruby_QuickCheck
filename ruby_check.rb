@@ -1,4 +1,4 @@
-require 'rtc_lib'
+#require 'rtc_lib'
 
 class Ruby_check
 
