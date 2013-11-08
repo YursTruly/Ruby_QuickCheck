@@ -13,19 +13,16 @@ class RQC
 			
 			def #{@method_to_check}(*x,&blk)
 				mname = \"#{mthd_name}\".to_sym
-				p \"zz\"
-				p @random_var_flag
-				@random_var_flag = false
-				p \"yy\"
-				@target = self
+				random_var_flag = false
+				target = self
 				if x[0].class.name == \"RQC\" then
 					prm = x[0].rqc_check(*x[1..x.size-1],&blk)
 					zzz = self
 					yyy = x[0].instance_variable_get(:@inst)
-					@random_var_flag = x[0].instance_variable_get(:@flag)
-					@target = @random_var_flag ? yyy : zzz
-					ret = @target.send(mname,*prm,&blk)
-					return x[0].compareReq(ret,@target,&blk)
+					random_var_flag = x[0].instance_variable_get(:@flag)
+					target = random_var_flag ? yyy : zzz
+					ret = target.send(mname,*prm,&blk)
+					return x[0].compareReq(ret,target,&blk)
 				else
 					return self.send(mname,*x,&blk)
 				end

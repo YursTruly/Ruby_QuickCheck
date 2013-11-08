@@ -17,9 +17,11 @@ puts "\n"
 rqc2 = RQC.new(String, :downcase) {|x| x.reverse == $downcase_p0.upcase}
 p "hi".downcase(rqc2)
 puts "\n"
+
 #pass
-#rqc4 = RQC.new(Float, :floor) {|x| x <= $floor_p0}
-#p 3.25.floor(rqc4)
+rqc4 = RQC.new(Float, :floor) {|x| x <= $floor_p0}
+p 3.25.floor(rqc4)
+puts "\n"
 
 #pass
 rqc3 = RQC.new(Numeric, :coerce) {|x| x[0].class==x[1].class}
