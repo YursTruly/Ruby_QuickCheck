@@ -29,6 +29,10 @@ Usage: TESTING WITH RQC
 Passing an RQC object as the first parameter to the tested method wi.ll result in a check being called (otherwise the method functions as normal).
 The check will return nil if failed or the valid return value from the test case if passed.
 
+Option: LABELLING CLASSES
+Insert or inject "@RQC_init" without quotes as a list with types of each parameter
+If spec_gen is not called beforehand, RQC will resort to checking for labelled classes before passing empty params
+
 Examples / Explanations:
 
 [NEW]   	>> RQC.new (String, :reverse) {|x| x.reverse == $reverse_p0}

@@ -40,10 +40,11 @@ class RQC
 	# Adds constraint definitions to sample instances of objects
 	def wrap_obj(obj)
 		class << obj
-			def rqc_constrain (dm = (-(2**(0.size * 8 - 2)))..((2**(0.size * 8 - 2) -1)), cs = 32..126, lndm = 0..50)
+			def rqc_constrain (dm = (-(2**(0.size * 8 - 2)))..((2**(0.size * 8 - 2) -1)), cs = 32..126, lndm = 0..50, opt = false)
 				@domain = dm
 				@charset = cs						
 				@len_domain = lndm
+				@is_optional = opt
 			end
 		end
 		obj.rqc_constrain
@@ -112,27 +113,20 @@ class RQC
 		return retArr
 	end
 	
-	# Gathers parameters for use in collecting input parameters
-	def get_prms(cls)
-		
-		
-		
-		return [String]
-	end
-	
 	# When user passes more params than specified,
 	# Infers the input types based on RTC annotations
 	def spec_infer(*prms)
 		tempArr = []
-		p @HANDLED_TYPES
-		prms.each{ |x|
+		prms.each{ |x| 
+			tempArr = []
 			if @HANDLED_TYPES.include?(x) then
 				tempArr << x.class
 			else
-				tempArr << get_prms(x.class)
+				tempArr << x.class.name.to_sym
+				spec_infer(x.instance_variable_get(:@RQC_init)).each { |z| tempArr << z}
 			end
 		}
-		spec_gen(tempArr)
+		return tempArr
 	end
 	
 	# Main method that handles quickcheck
@@ -141,7 +135,7 @@ class RQC
 		if @cls_def.size==0 then
 			spec_gen([]) 
 		end
-		if @gen_specs.size<x.size then spec_infer(x[0..x.size-1]) end
+		if @gen_specs.size<x.size then spec_gen(spec_infer(x[0..x.size-1])) end
 		if @flag then 
 			@inst = get_new_params(@cls_def)[0]
 			eval("$#{@method_to_check}_p0 = @inst") 
