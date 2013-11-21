@@ -1,4 +1,5 @@
 require_relative "rbqc"
+require_relative "CustomTest"
 
 #pass
 rqc = RQC.new(String, :upcase) { |x| x.downcase == $upcase_p0.downcase }
@@ -27,4 +28,10 @@ puts "\n"
 rqc3 = RQC.new(Numeric, :coerce) {|x| x[0].class==x[1].class}
 rqc3.spec_gen([Numeric])
 p 5.coerce(rqc3,6.2)
+puts "\n"
+
+#pass
+rqc5 = RQC.new(TestModule::Klass, :mthd2) {|x| 1==1}
+rqc5.spec_gen([Fixnum, String])
+p TestModule::Klass.mthd2(rqc5,2,"hi")
 puts "\n"
