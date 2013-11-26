@@ -18,7 +18,8 @@ class RQC
 	
 	def RQC.set_gen(*prms)
 		tempArr = []
-		prms.each {|x| tempArr << (x.is_a?(String.class) ? RQC_gen.new(x):RQC_gen(set_gen(x[1..x.length-1])))}
+		#p prms
+		prms.each {|x| tempArr << (x.is_a?(String.class) ? RQC_gen.new(x):RQC_gen.new(x[0],*(set_gen(*(x[1...x.length])))))}
 		return tempArr
 	end
 	
@@ -41,11 +42,12 @@ class RQC_gen
 		@domain = (-(2**(0.size * 8 - 2)))..((2**(0.size * 8 - 2) -1))
 		@charset = 32..126						
 		@len_domain = 0..50
+		@prms = prms
 		prc = "p \"Generation Method Not Implemented\""
 		if @@HANDLED_TYPES.has_key?(typ.to_s) then 
 			prc = @@HANDLED_TYPES[typ.to_s]
 		elsif !prms.empty?
-			prc = "prm=[];prms.each{|x| prm<<x.gen};@cls.new(*prm)"
+			prc = "prm=[];@prms.each{|x| prm<<x.gen};@cls.new(*prm)"
 		end
 		@prc = prc
 	end

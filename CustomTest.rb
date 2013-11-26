@@ -8,10 +8,10 @@ module TestModule
 	
 			#@RQC_init = [String,Fixnum]
 	
-			def self.initialize()#a,b)
+			def initialize(a,b)
 				
 				#b.times {p "hello, #{a}"}
-				#p "initialized\n\n"
+				puts "initialized\n\n"
 				
 			end
 			
@@ -21,9 +21,11 @@ module TestModule
 				
 			end
 			
-			def self.mthd2(fix,str)
+			def mthd2(fix,str)
 				
-				fix.times {p str}
+				#fix.times {p str}
+				5.times {p "#{str} ::::::::>>> #{fix}"}
+				return true
 				
 			end
 			
