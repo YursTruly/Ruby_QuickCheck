@@ -11,8 +11,10 @@ class RQC
 	def RQC.qc(*prms,&checks)
 		srand
 		if !prms.empty? then $prm_generators = set_gen(*prms) end
+		if &checks.nil? then return end
+		prm_generators = $prm_generators
 		tempPrms = []
-		$prm_generators.each {|x| rand(x.instance_variable_get(:@splat_range)).times{tempPrms << x.gen}}
+		prm_generators.each {|x| rand(x.instance_variable_get(:@splat_range)).times{tempPrms << x.gen}}
 		if !checks.call(*tempPrms) then raise "RQC Test Failed on Test Case: #{tempPrms}" else p "Passed: #{tempPrms}" end
 	end
 	
@@ -29,7 +31,7 @@ class RQC_gen
 	
 	srand
 	@@HANDLED_TYPES = {"String" => "tempStr=\"\";rand(@len_domain).times{tempStr +=eval(@@HANDLED_TYPES[\"Char\"])};tempStr",
-	"Char" => "rand(@charset).chr",
+	"Char" => "if @charset.class==Range then rand(@charset).chr else @charset.sample end",
 	"Fixnum" => "rand(@domain)",
 	"Float" => "rand()*eval(@@HANDLED_TYPES[\"Fixnum\"])",
 	"Numeric" => "str=rand(0..1)>0 ? \"Float\":\"Fixnum\"; eval(@@HANDLED_TYPES[str])",
