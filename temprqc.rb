@@ -11,11 +11,14 @@ class RQC
 	def RQC.qc(*prms,&checks)
 		srand
 		if !prms.empty? then $prm_generators = set_gen(*prms) end
-		if &checks.nil? then return end
+		if checks.nil? then return end
 		prm_generators = $prm_generators
 		tempPrms = []
 		prm_generators.each {|x| rand(x.instance_variable_get(:@splat_range)).times{tempPrms << x.gen}}
-		if !checks.call(*tempPrms) then raise "RQC Test Failed on Test Case: #{tempPrms}" else p "Passed: #{tempPrms}" end
+		st = Time.now
+		chk = checks.call(*tempPrms)
+		et = Time.now - st
+		if !chk then raise "RQC Test Failed on Test Case: #{tempPrms}" else p "Passed: #{tempPrms} Time: #{et} seconds" end
 	end
 	
 	def RQC.set_gen(*prms)
@@ -35,7 +38,9 @@ class RQC_gen
 	"Fixnum" => "rand(@domain)",
 	"Float" => "rand()*eval(@@HANDLED_TYPES[\"Fixnum\"])",
 	"Numeric" => "str=rand(0..1)>0 ? \"Float\":\"Fixnum\"; eval(@@HANDLED_TYPES[str])",
-	"Symbol" => "eval(@@HANDLED_TYPES[\"String\"]).to_sym"
+	"Symbol" => "eval(@@HANDLED_TYPES[\"String\"]).to_sym",
+	"TrueClass" => "rand(0..1)>0",
+	"FalseClass" => "rand(0..1)<1"
 	}
 
 	def initialize(typ,*prms)
@@ -45,6 +50,7 @@ class RQC_gen
 		@charset = 32..126						
 		@len_domain = 0..50
 		@prms = prms
+		@custom_prc = nil
 		prc = "p \"Generation Method Not Implemented\""
 		if @@HANDLED_TYPES.has_key?(typ.to_s) then 
 			prc = @@HANDLED_TYPES[typ.to_s]
@@ -55,6 +61,7 @@ class RQC_gen
 	end
 	
 	def gen()
+		if !@custom_prc.nil? then @custom_prc.call(@prc) end
 		return eval(@prc)
 	end
 		

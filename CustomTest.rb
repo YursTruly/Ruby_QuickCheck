@@ -24,7 +24,7 @@ module TestModule
 			def mthd2(fix,str)
 				
 				#fix.times {p str}
-				5.times {p "#{str} ::::::::>>> #{fix}"}
+				#5.times {p "#{str} ::::::::>>> #{fix}"}
 				return true
 				
 			end
