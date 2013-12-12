@@ -1,4 +1,4 @@
-require_relative "temprqc"
+require_relative "rqc"
 require_relative "CustomTest"
 srand
 
@@ -30,9 +30,14 @@ sum=0
 for i in 0...(tempArr.size) sum +=tempArr[i] end
 if sum==1 then true else prc2.call(sum) end
 }
+
+def run_happy_number
+
+end
+
 RQC.qc(Fixnum)
 $prm_generators[0].instance_variable_get(:@domain)==0..((2**(0.size * 8 - 2) -1))
-RQC.qc() {|fix| }
+RQC.qc() {|fix| if run_happy_number(fix) then prc.call(fix) else p "Cannot determine false case"; false end}
 
 #fail
 #RQC.qc(String) {|str| str.reverse.reverse == "hello"}

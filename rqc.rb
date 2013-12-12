@@ -8,17 +8,17 @@ class RQC
 	#	$prm_generators = set_gen(*prms)
 	#end
 	
-	def RQC.qc(*prms,&checks)
+	def RQC.qc(*prms)
 		srand
 		if !prms.empty? then $prm_generators = set_gen(*prms) end
-		if checks.nil? then return end
+		if !block_given? then return end
 		prm_generators = $prm_generators
 		tempPrms = []
 		prm_generators.each {|x| rand(x.instance_variable_get(:@splat_range)).times{tempPrms << x.gen}}
 		st = Time.now
-		chk = checks.call(*tempPrms)
+		chk = yield(*tempPrms)
 		et = Time.now - st
-		if !chk then raise "RQC Test Failed on Test Case: #{tempPrms}" else p "Passed: #{tempPrms} Time: #{et} seconds" end
+		if !chk then raise "RQC Test Failed on Test Case: #{tempPrms}" else et end
 	end
 	
 	def RQC.set_gen(*prms)
