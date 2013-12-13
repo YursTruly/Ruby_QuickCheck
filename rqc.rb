@@ -18,7 +18,7 @@ class RQC
 		st = Time.now
 		chk = yield(*tempPrms)
 		et = Time.now - st
-		if !chk then raise "RQC Test Failed on Test Case: #{tempPrms}" else et end
+		if !chk then raise "RQC Test Failed on Test Case: #{tempPrms}" else return tempPrms,et end
 	end
 	
 	def RQC.set_gen(*prms)
