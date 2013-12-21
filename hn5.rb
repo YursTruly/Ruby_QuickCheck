@@ -40,4 +40,4 @@ if sum==1 then $memx=[];true elsif $memx.include?(sum) then false else $memx<<su
 }
 RQC.qc(Fixnum)
 $prm_generators[0].instance_variable_set(:@domain, 0..((2**(0.size * 8 - 2) -1)))
-10000.times {p RQC.qc {|fix| p "#{fix.happy?} case:"; prc2.call(fix)==fix.happy? }}
+10000.times {p RQC.qc {|fix| p "#{fix.happy?} case:"; fix.happy?.class==Array ? prc2.call(fix):prc2.call(fix)==fix.happy? }}
