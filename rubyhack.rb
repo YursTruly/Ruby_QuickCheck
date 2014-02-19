@@ -23,14 +23,16 @@ def self.blank(x)
 	obj = BasicObject.new
 	class << obj
 		def method_missing(name, *args, &blk)
-			if @rqcval.nil? then @rqcval = #{x.inspect} end
 			if @questlog.nil? then @questlog = [] end
 			@questlog << [name,@rqcval,args]
-			@rqcval = @rqcval.send(name, *args, &blk)
+			@rqcval = #{x.inspect}.send(name, *args, &blk)
 			return @rqcval
 		end
 		def rqc_get()
 			return @questlog
+		end
+		def inspect()
+			return @rqcval
 		end
 	end
 	return obj
@@ -48,6 +50,7 @@ puts "\n\n"
 #possible: use state-based recording
 
 def hi2()
+	$x = 1
 	$x = 5+3
 	x = $x+1
 end
